@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101827">
+
+    <title>Friends Ludo | Play Together</title>
+
+    <link rel="stylesheet" href="style.css?v=3">
+</head>
+
+<body>
+
+    <header class="topbar">
+
+        <div class="brand">
+            <span class="brand-icon">🎲</span>
+            <span>FRIENDS <b>LUDO</b></span>
+        </div>
+
+        <div class="online">
+            <span class="online-dot"></span>
+            LIVE MULTIPLAYER
+        </div>
+
+    </header>
+
+
+    <main>
+
+        <!-- HOME PAGE -->
+
+        <section id="home" class="panel">
+
+            <div class="hero-icon">🎲</div>
+
+            <span class="eyebrow">CLASSIC MULTIPLAYER</span>
+
+            <h1>Play Ludo Together</h1>
+
+            <p class="muted">
+                Create a room, invite your friends and enjoy the game.
+            </p>
+
+            <input
+                id="playerName"
+                type="text"
+                placeholder="Enter your name"
+                maxlength="20"
+                autocomplete="off"
+            >
+
+            <button id="createRoom" class="primary">
+                CREATE ROOM
+            </button>
+
+            <div class="or">
+                <span></span>
+                OR JOIN A FRIEND
+                <span></span>
+            </div>
+
+            <input
+                id="roomCode"
+                type="text"
+                placeholder="ENTER ROOM CODE"
+                maxlength="6"
+                autocomplete="off"
+            >
+
+            <button id="joinRoom" class="secondary">
+                JOIN ROOM
+            </button>
+
+        </section>
+
+
+        <!-- LOBBY -->
+
+        <section id="lobby" class="panel" hidden>
+
+            <div class="hero-icon">👥</div>
+
+            <span class="eyebrow">YOUR PRIVATE MATCH</span>
+
+            <h2>Waiting Room</h2>
+
+            <p class="muted">
+                Share your room code with your friends.
+            </p>
+
+            <div class="room-code">
+
+                <div>
+                    <span>ROOM CODE</span>
+                    <strong id="roomTitle"></strong>
+                </div>
+
+                <button id="copyCode" class="small">
+                    COPY
+                </button>
+
+            </div>
+
+            <p id="playerCount" class="muted"></p>
+
+            <ul id="playerList"></ul>
+
+            <button id="startGame" class="primary" hidden>
+                START GAME 🎲
+            </button>
+
+            <p id="waitingText" class="muted"></p>
+
+        </section>
+
+
+        <!-- GAME -->
+
+        <section id="game" hidden>
+
+            <div class="match-header">
+
+                <div>
+                    <span class="eyebrow">FRIENDS MATCH</span>
+                    <h2>Classic Ludo</h2>
+                </div>
+
+                <div class="room-pill">
+                    ROOM <b id="gameRoom"></b>
+                </div>
+
+            </div>
+
+
+            <!-- PLAYERS -->
+
+            <div id="playersBar" class="players-bar"></div>
+
+
+            <!-- BOARD -->
+
+            <div class="board-shell">
+
+                <div class="board-top-label">
+                    <span>★</span>
+                    <span>LUCKY ROLL</span>
+                    <span>★</span>
+                </div>
+
+                <div id="board"></div>
+
+                <button
+                    id="centerDice"
+                    class="center-dice"
+                    type="button"
+                    aria-label="Roll dice"
+                >
+                    <span id="diceFace">🎲</span>
+                    <small id="diceLabel">ROLL</small>
+                </button>
+
+            </div>
+
+
+            <!-- TURN PANEL -->
+
+            <div class="turn-panel">
+
+                <div class="turn-copy">
+
+                    <span class="eyebrow">CURRENT TURN</span>
+
+                    <strong id="turnInfo">
+                        Waiting...
+                    </strong>
+
+                    <small id="gameMessage">
+                        Waiting for players
+                    </small>
+
+                </div>
+
+                <div class="dice-actions">
+
+                    <button
+                        id="rollDice"
+                        class="roll-button"
+                        type="button"
+                    >
+                        🎲 ROLL DICE
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <p class="game-hint">
+                Roll the dice and tap your glowing token to move.
+            </p>
+
+        </section>
+
+
+        <p id="message" role="status"></p>
+
+    </main>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js?v=3"></script>
+
+</body>
+
+</html>
