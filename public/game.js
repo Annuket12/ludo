@@ -5,8 +5,19 @@ const socket = io({
 
 const $ = id => document.getElementById(id);
 
-let myId = null;
-let myRoom = null;
+// STABLE PLAYER ID
+const PLAYER_ID_KEY = "ludo_player_id";
+const ROOM_KEY = "ludo_room_code";
+
+let playerId = localStorage.getItem(PLAYER_ID_KEY);
+
+if (!playerId) {
+    playerId = crypto.randomUUID();
+    localStorage.setItem(PLAYER_ID_KEY, playerId);
+}
+
+let myId = playerId;
+let myRoom = localStorage.getItem(ROOM_KEY) || null;
 let state = null;
 
 let visualPositions = null;
@@ -87,14 +98,56 @@ function delay(ms) {
 }
 
 
-// CONNECTION
+// CONNECTION + RECONNECTION
 
 socket.on("connect", () => {
-    myId = socket.id;
+    myId = playerId;
+
+    console.log("Connected:", socket.id);
+
+    // Rejoin the previous room after refresh/reconnection.
+    if (myRoom) {
+        socket.emit("reconnectRoom", {
+            code: myRoom,
+            playerId: playerId
+        });
+    }
+});
+
+socket.on("disconnect", () => {
+    console.log("Disconnected from server");
 });
 
 socket.on("connect_error", () => {
     showMessage("Server connection failed!");
+});
+
+socket.on("roomReconnected", code => {
+    myRoom = code || myRoom;
+
+    if (myRoom) {
+        localStorage.setItem(ROOM_KEY, myRoom);
+        $("roomTitle").textContent = myRoom;
+    }
+
+    console.log("Room reconnected:", myRoom);
+});
+
+socket.on("reconnectFailed", message => {
+    console.log("Room reconnect failed:", message);
+
+    localStorage.removeItem(ROOM_KEY);
+
+    myRoom = null;
+    state = null;
+
+    showPage("home");
+
+    if (message) {
+        showMessage(message);
+    } else {
+        showMessage("Previous room is no longer available. Create or join a room.");
+    }
 });
 
 
@@ -108,7 +161,10 @@ $("createRoom").onclick = () => {
         return;
     }
 
-    socket.emit("createRoom", name);
+    socket.emit("createRoom", {
+        name,
+        playerId
+    });
 };
 
 
@@ -123,7 +179,11 @@ $("joinRoom").onclick = () => {
         return;
     }
 
-    socket.emit("joinRoom", { name, code });
+    socket.emit("joinRoom", {
+        name,
+        code,
+        playerId
+    });
 };
 
 
@@ -131,13 +191,21 @@ $("joinRoom").onclick = () => {
 
 socket.on("roomCreated", code => {
     myRoom = code;
+
+    localStorage.setItem(ROOM_KEY, code);
+
     $("roomTitle").textContent = code;
+
     showPage("lobby");
 });
 
 socket.on("roomJoined", code => {
     myRoom = code;
+
+    localStorage.setItem(ROOM_KEY, code);
+
     $("roomTitle").textContent = code;
+
     showPage("lobby");
 });
 
@@ -178,8 +246,12 @@ socket.on("roomUpdate", data => {
     state = data;
     myRoom = data.code;
 
+    // Keep the room code saved for future refreshes.
+    localStorage.setItem(ROOM_KEY, data.code);
+
     if (data.started) {
         showPage("game");
+
         $("gameRoom").textContent = data.code;
 
         const movement = findMovement(previousState, data);
@@ -201,16 +273,27 @@ socket.on("roomUpdate", data => {
 
     $("roomTitle").textContent = data.code;
 
+    const connectedCount = data.players.filter(
+        player => player.connected !== false
+    ).length;
+
     $("playerCount").textContent =
-        data.players.length + " / 4 players connected";
+        connectedCount + " / 4 players connected";
 
     $("playerList").innerHTML = "";
 
     data.players.forEach(player => {
         const li = document.createElement("li");
 
+        const status = player.connected === false
+            ? " (Disconnected)"
+            : " (Connected)";
+
         li.textContent =
-            player.name + " — " + player.color.toUpperCase();
+            player.name +
+            " — " +
+            player.color.toUpperCase() +
+            status;
 
         $("playerList").appendChild(li);
     });
@@ -548,6 +631,7 @@ function renderGame() {
         !animationLock;
 
     $("centerDice").disabled = !diceEnabled;
+
     $("centerDice").classList.toggle(
         "disabled",
         !diceEnabled
