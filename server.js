@@ -608,11 +608,10 @@ io.on("connection", socket => {
 });
 
 
-// server.listen(process.env.PORT || 3000, () => {
-//     console.log(
-//         "Ludo server running on port " +
-//         (process.env.PORT || 3000)
-//     );
-// });
+if (!process.env.VERCEL) {
+    server.listen(process.env.PORT || 3000, () => {
+        console.log("Ludo server running");
+    });
+}
 
 module.exports = server;
